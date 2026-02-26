@@ -1,23 +1,41 @@
-🧪 LAB – Building an MCP AI Agent with Claude
-Java · Spring Boot · Gradle · LangChain4j · MCP · Claude · Testing · CI/CD · Docker · GitHub
+# 🧪 LAB – Building an MCP AI Agent with Claude
+**Java · Spring Boot · Gradle · LangChain4j · MCP · Claude · Testing · CI/CD · Docker · GitHub**
 
-In this lab, you will build a real AI agent not a chatbot. The agent will understand user intent and take real actions on GitHub using MCP.
+---
+In this lab, you will build a real AI agent not a chatbot.
+The agent will understand user intent and take real actions on GitHub using MCP.
 
-This project implements an AI Agent. An AI Agent is a system that: • understands user intent, • reasons about what needs to be done, • and takes actions on external systems through controlled tools.
-🎯 Global Lab Objective
-Build step by step an AI agent able to:
 
-understand a natural language request,
-reason with Claude (Anthropic),
-calls standardized tools via MCP,
-automatically create a GitHub issue,
-be tested, containerized, and integrated into CI/CD.
-🧠 End-to-end Use Case
-“Create a task to add OpenTelemetry and export traces via OTLP”
+**This project implements an AI Agent.**
+An AI Agent is a system that:
+•	understands user intent,
+•	reasons about what needs to be done,
+•	and takes actions on external systems through controlled tools.
+---
 
-⟶ a well-structured GitHub issue is created automatically.
+## 🎯 Global Lab Objective
 
-🏗️ Target Architecture
+Build **step by step** an **AI agent** able to:
+
+1. understand a natural language request,
+2. reason with **Claude (Anthropic)**,
+3. calls **standardized tools via MCP**,
+4. automatically create a **GitHub issue**,
+5. be **tested**, **containerized**, and **integrated into CI/CD**.
+
+---
+
+## 🧠 End-to-end Use Case
+
+> “Create a task to add OpenTelemetry and export traces via OTLP”
+
+⟶ a **well-structured GitHub issue** is created automatically.
+
+---
+
+## 🏗️ Target Architecture
+
+```text
 User
   ↓  HTTP POST /api/run
 AgentController (Spring Boot)
@@ -35,30 +53,112 @@ MCP HTTP Wrapper (Node.js)
 GitHub MCP Server (official)
   ↓
 GitHub API (Issues)
+```
 
-🧭 Mandatory Rule – Issue‑Driven Development (GitHub)
-⚠️ This lab MUST be executed in an issue‑driven manner.
-No code is allowed without a GitHub ticket.
+```mermaid
+flowchart LR
+    %% =========================
+    %% User / Client
+    %% =========================
+    User["👤 User<br/>(curl / UI)"]
 
-All steps in this lab must follow professional agile practices, exactly as in a real engineering team.
+    %% =========================
+    %% Spring Boot App (Student)
+    %% =========================
+    subgraph SB["🔨 Spring Boot Application<br/>lab_mcp_ai_agent_springboot"]
+        AgentController["🔨 AgentController<br/>REST API<br/>POST /api/run"]
 
-🧠 Core Principle
-1 STEP = 1 GitHub Issue
-All steps belong to a single Feature / Epic
-Each issue must be:
-created before coding
-implemented on a dedicated branch
-linked to commits
-closed via a Pull Request
-🧩 GitHub Structure to Use
-1️⃣ Feature / Epic (created once)
+        AgentService["🔨 AgentService<br/>Orchestrates Agent"]
+
+        BacklogAgent["🔨 BacklogAgent<br/>(LangChain4j AI Service)<br/>System + User Prompt"]
+
+        LangChainConfig["🔨 LangChainConfig<br/>AnthropicChatModel<br/>Tool Wiring"]
+
+        GitHubMcpTools["🔨 GitHubMcpTools<br/>@Tool createIssue(...)"]
+
+        McpHttpClient["🔨 McpHttpClient<br/>JSON-RPC over HTTP"]
+    end
+
+    %% =========================
+    %% External AI
+    %% =========================
+    Claude["📦 Anthropic Claude API<br/>(chat + tool-use)"]
+
+    %% =========================
+    %% MCP Layer
+    %% =========================
+    subgraph MCP["📦 MCP Layer"]
+        MCPWrapper["🔨 MCP HTTP Wrapper<br/>(Node.js / Express)<br/>POST /mcp"]
+        GitHubMCP["📦 GitHub MCP Server<br/>(STDIO, official)"]
+    end
+
+    %% =========================
+    %% GitHub
+    %% =========================
+    GitHub["📦 GitHub API<br/>(Issues, Repos)"]
+
+    %% =========================
+    %% Flows
+    %% =========================
+    User -->|HTTP POST /api/run| AgentController
+    AgentController --> AgentService
+    AgentService --> BacklogAgent
+
+    BacklogAgent -->|chat + tool schema| Claude
+    Claude -->|tool call request| BacklogAgent
+
+    BacklogAgent -->|Java @Tool call| GitHubMcpTools
+    GitHubMcpTools --> McpHttpClient
+
+    McpHttpClient -->|JSON-RPC HTTP| MCPWrapper
+    MCPWrapper -->|STDIO| GitHubMCP
+    GitHubMCP -->|REST| GitHub
+
+    GitHub --> GitHubMCP
+    GitHubMCP --> MCPWrapper
+    MCPWrapper --> McpHttpClient
+    McpHttpClient --> GitHubMcpTools
+    GitHubMcpTools --> BacklogAgent
+    BacklogAgent --> AgentService
+    AgentService --> AgentController
+```
+
+---
+
+# 🧭 Mandatory Rule – Issue‑Driven Development (GitHub)
+
+> ⚠️ **This lab MUST be executed in an issue‑driven manner.**  
+> **No code is allowed without a GitHub ticket.**
+
+All steps in this lab must follow **professional agile practices**, exactly as in a real engineering team.
+
+---
+
+## 🧠 Core Principle
+
+- **1 STEP = 1 GitHub Issue**
+- **All steps belong to a single Feature / Epic**
+- Each issue must be:
+  - created before coding
+  - implemented on a dedicated branch
+  - linked to commits
+  - closed via a Pull Request
+
+---
+
+## 🧩 GitHub Structure to Use
+
+### 1️⃣ Feature / Epic (created once)
+
 Create a GitHub Issue:
 
-Title
-
+**Title**
+```
 [FEATURE] AI Agent – LangChain4j + MCP + Claude
-Description
+```
 
+**Description**
+```md
 -## Goal
 Build an AI agent using LangChain4j 1.10.0 that:
 - reasons with Claude (Anthropic)
@@ -74,31 +174,47 @@ Build an AI agent using LangChain4j 1.10.0 that:
 
 -## Tasks
 All implementation steps are tracked as child issues.
-👉 This issue stays OPEN until the end of the lab.
+```
 
-2️⃣ One GitHub Issue per STEP
-Each step in this lab must have its own issue.
+👉 This issue stays **OPEN until the end of the lab**.
 
-Naming convention
+---
 
+### 2️⃣ One GitHub Issue per STEP
+
+Each step in this lab **must have its own issue**.
+
+**Naming convention**
+```
 [STEP X] <short description>
-🔗 STEP ↔ GitHub Issue Mapping
-Lab Step	GitHub Issue Title
-STEP 1	[STEP 1] Bootstrap project with Spring Initializr
-STEP 1.1	[STEP 1.1] Create sample User
-STEP 2	[STEP 2] Add LangChain4j 1.10.0 dependencies
-STEP 3	[STEP 3] Configure Anthropic and MCP endpoints
-STEP 4	[STEP 4] Connect LangChain4j to Claude
-STEP 5	[STEP 5] Implement MCP HTTP client
-STEP 6	[STEP 6] Bridge MCP tools with LangChain4j
-STEP 7	[STEP 7] Expose Agent REST API
-STEP 8	[STEP 8] Add unit tests for MCP bridge
-STEP 9	[STEP 9] Add integration tests
-STEP 10	[STEP 10] Dockerize the agent
-STEP 11	[STEP 11] Setup CI/CD with GitHub Actions
-📄 Standard Issue Template (MANDATORY)
-Each STEP issue must follow this template:
+```
 
+---
+
+## 🔗 STEP ↔ GitHub Issue Mapping
+
+| Lab Step | GitHub Issue Title                                  |
+|----------|-----------------------------------------------------|
+| STEP 1   | `[STEP 1] Bootstrap project with Spring Initializr` |
+| STEP 1.1 | `[STEP 1.1] Create sample User`                     |
+| STEP 2   | `[STEP 2] Add LangChain4j 1.10.0 dependencies`      |
+| STEP 3   | `[STEP 3] Configure Anthropic and MCP endpoints`    |
+| STEP 4   | `[STEP 4] Connect LangChain4j to Claude`            |
+| STEP 5   | `[STEP 5] Implement MCP HTTP client`                |
+| STEP 6   | `[STEP 6] Bridge MCP tools with LangChain4j`        |
+| STEP 7   | `[STEP 7] Expose Agent REST API`                    |
+| STEP 8   | `[STEP 8] Add unit tests for MCP bridge`            |
+| STEP 9   | `[STEP 9] Add integration tests`                    |
+| STEP 10  | `[STEP 10] Dockerize the agent`                     |
+| STEP 11  | `[STEP 11] Setup CI/CD with GitHub Actions`         |
+
+---
+
+## 📄 Standard Issue Template (MANDATORY)
+
+Each STEP issue **must follow this template**:
+
+```md
 -## Context
 Why this step is required.
 
@@ -116,128 +232,199 @@ Explicitly excluded items.
 
 -## References
 - Lab STEP X
-🌱 Branch & Commit Rules
+```
+
+---
+
+## 🌱 Branch & Commit Rules
+
 For each issue:
 
+```bash
 git checkout -b step-X-short-description
-Commits must reference the issue number:
+```
 
+Commits **must reference the issue number**:
+
+```bash
 git commit -m "feat(step-X): <short description> (#ISSUE_ID)"
-🔁 Pull Request Rules
-One PR per STEP
-PR description must reference the issue
-Issue is closed only when PR is merged
-🏷️ Required GitHub Labels
+```
+
+---
+
+## 🔁 Pull Request Rules
+
+- One PR per STEP
+- PR description must reference the issue
+- Issue is closed **only when PR is merged**
+
+---
+
+## 🏷️ Required GitHub Labels
+
 Create the following labels in the repository:
 
-feature
-bug
-test
-docker
-ci-cd
-🧠 Bonus (Advanced / Recommended)
-From STEP 7 onward, students are encouraged to use the agent itself to manage the backlog:
+- `feature`
+- `bug`
+- `test`
+- `docker`
+- `ci-cd`
 
-“Create a GitHub task for adding Docker support”
+---
+
+## 🧠 Bonus (Advanced / Recommended)
+
+From **STEP 7 onward**, students are encouraged to use the **agent itself** to manage the backlog:
+
+> “Create a GitHub task for adding Docker support”
 
 The agent should:
+- create the GitHub issue
+- which is then implemented by the students
 
-create the GitHub issue
-which is then implemented by the students
-🔥 This creates a self‑referential agent → backlog → code loop.
+🔥 This creates a **self‑referential agent → backlog → code loop**.
 
-✅ Evaluation Criteria (Suggested)
-✔️ One STEP = one closed issue
-✔️ Commits linked to issues
-✔️ Clean PR history
-✔️ CI green
-✔️ Feature / Epic closed at the end
-🔹 STEP 0 — Prerequisites
-Java 21
-Git
-GitHub account + repository
-Anthropic API key
-Fine‑grained GitHub token (Issues RW)
+---
+
+## ✅ Evaluation Criteria (Suggested)
+
+- ✔️ One STEP = one closed issue
+- ✔️ Commits linked to issues
+- ✔️ Clean PR history
+- ✔️ CI green
+- ✔️ Feature / Epic closed at the end
+
+---
+
+# 🔹 STEP 0 — Prerequisites
+
+- Java 21
+- Git
+- GitHub account + repository
+- Anthropic API key
+- Fine‑grained GitHub token (Issues RW)
+
 Export secrets:
 
+```bash
 export ANTHROPIC_API_KEY=sk-ant-xxx
 export GITHUB_TOKEN=github_pat_xxx
 export GITHUB_OWNER="whoIam"
 export GITHUB_REPO="lab_mcp_ai_agent_springboot"
-🔹 STEP 0.1 — Run the GitHub MCP HTTP Wrapper (Local Development)
-In this step, students will run both:
+```
 
-the official GitHub MCP Server (STDIO) locally via Docker
-the GitHub MCP HTTP Wrapper provided in the repository
-The wrapper exposes the STDIO-based MCP server over HTTP, making it usable by the Spring Boot application and later deployable to Docker / Minikube.
+---
 
-📁 The wrapper source code is provided under: ./mcp-github-http-wrapper
+## 🔹 STEP 0.1 — Run the GitHub MCP HTTP Wrapper (Local Development)
 
-0.1.1 Prerequisites
+In this step, students will run **both**:
+- the **official GitHub MCP Server (STDIO)** locally via Docker
+- the **GitHub MCP HTTP Wrapper** provided in the repository
+
+The wrapper exposes the STDIO-based MCP server over **HTTP**, making it usable
+by the Spring Boot application and later deployable to Docker / Minikube.
+
+> 📁 The wrapper source code is provided under:
+> `./mcp-github-http-wrapper`
+
+---
+
+### 0.1.1 Prerequisites
+
 Ensure the following are installed on your development machine:
 
-Node.js ≥ 20
-npm
-Docker
-Verify:
+- **Node.js ≥ 20**
+- **npm**
+- **Docker**
 
+Verify:
+```bash
 node -v
 npm -v
 docker version
-0.1.2 Configure GitHub Authentication
+```
+
+---
+
+### 0.1.2 Configure GitHub Authentication
+
 Create a GitHub Personal Access Token (PAT):
+- in GitHub/Settings/Developer settings/Personal access tokens/Fine-grained tokens
 
-in GitHub/Settings/Developer settings/Personal access tokens/Fine-grained tokens
+- Prefer a **Fine-grained token**
+- Grant:
+  - **Issues: Read and write**
+  - Access to the target repository
 
-Prefer a Fine-grained token
-
-Grant:
-
-Issues: Read and write
-Access to the target repository
 Export the token:
 
+```bash
 export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxxxxxxxxxxxxxx
-0.1.3 Run the Official GitHub MCP Server (STDIO)
-The GitHub MCP server runs in STDIO mode and is required by the HTTP wrapper.
+```
+
+---
+
+### 0.1.3 Run the Official GitHub MCP Server (STDIO)
+
+The GitHub MCP server runs in **STDIO mode** and is required by the HTTP wrapper.
 
 Run it in a dedicated terminal:
 
+```bash
 docker run --rm -i   -e GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN   ghcr.io/github/github-mcp-server
-Expected behavior:
+```
 
-The container starts and waits for STDIO input
-No HTTP port is exposed
-This process must remain running
-⚠️ Important
+Expected behavior:
+- The container starts and waits for STDIO input
+- No HTTP port is exposed
+- This process must remain running
+
+⚠️ **Important**  
 Do not stop this container while working on the lab.
 
-0.1.4 Install Dependencies for the HTTP Wrapper
+---
+
+### 0.1.4 Install Dependencies for the HTTP Wrapper
+
 copy/clone https://github.com/pierre-filliolaud/lab_mcp_ai_agent_springboot
 
 From the project root:
-
+```bash
 cd mcp-github-http-wrapper
 npm install
+```
+
 This installs:
+- Express
+- Model Context Protocol SDK
+- Required runtime dependencies
 
-Express
-Model Context Protocol SDK
-Required runtime dependencies
-0.1.5 Start the MCP HTTP Wrapper
-In a second terminal, start the wrapper:
+---
 
+### 0.1.5 Start the MCP HTTP Wrapper
+
+In a **second terminal**, start the wrapper:
+
+```bash
 npm start
+```
+
 Expected output:
-
+```text
 GitHub MCP HTTP Wrapper listening on http://localhost:3333/mcp
+```
+
 Internally, the wrapper:
+- Connects to the running GitHub MCP server via **STDIO**
+- Exposes MCP tools over **HTTP JSON-RPC**
 
-Connects to the running GitHub MCP server via STDIO
-Exposes MCP tools over HTTP JSON-RPC
-0.1.6 Verify MCP Tools Are Available
-In a third terminal, test the MCP endpoint:
+---
 
+### 0.1.6 Verify MCP Tools Are Available
+
+In a **third terminal**, test the MCP endpoint:
+
+```bash
 curl http://localhost:3333/mcp \
   -H "Content-Type: application/json" \
   -d '{
@@ -246,8 +433,11 @@ curl http://localhost:3333/mcp \
     "method": "tools/list",
     "params": {}
   }'
+```
+
 You should receive a response containing GitHub tools, for example:
 
+```json
 {
   "result": {
     "tools": [
@@ -258,12 +448,19 @@ You should receive a response containing GitHub tools, for example:
     ]
   }
 }
-⚠️ Note:
-The exact tool name (e.g. create_issue) must be used later in the Spring Boot MCP client.
+```
 
-0.1.7 Architecture Reminder
+⚠️ **Note:**  
+The exact tool name (e.g. `create_issue`) must be used later
+in the Spring Boot MCP client.
+
+---
+
+### 0.1.7 Architecture Reminder
+
 At this stage, the local architecture is:
 
+```text
 Spring Boot App (not started yet)
   ↓ JSON-RPC (HTTP)
 GitHub MCP HTTP Wrapper (Node.js)
@@ -271,31 +468,45 @@ GitHub MCP HTTP Wrapper (Node.js)
 GitHub MCP Server (Docker)
   ↓
 GitHub API
-🔹 STEP 1 — Project Bootstrap with Spring Initializr
-🎯 Objective
-Generate a clean and standard Spring Boot project skeleton using Spring Initializr.
+```
 
-1.1 Use Spring Initializr (Web UI)
+---
+
+# 🔹 STEP 1 — Project Bootstrap with Spring Initializr
+
+### 🎯 Objective
+Generate a clean and standard **Spring Boot project skeleton** using **Spring Initializr**.
+
+---
+
+## 1.1 Use Spring Initializr (Web UI)
+
 Go to 👉 https://start.spring.io
 
 Select the following options:
 
-Project: Gradle – Groovy
-Language: Java
-Spring Boot: 3.3.x (or latest 3.x)
-Group: com.example
-Artifact: agent
-Name: agent
-Packaging: Jar
-Java: 21
-Dependencies to add:
-Spring Web
-Spring Validation
-👉 Click Generate, unzip the project.
+- **Project**: Gradle – Groovy
+- **Language**: Java
+- **Spring Boot**: 3.3.x (or latest 3.x)
+- **Group**: `com.example`
+- **Artifact**: `agent`
+- **Name**: `agent`
+- **Packaging**: Jar
+- **Java**: 21
 
-1.2 Alternative: Spring Initializr via CLI
+### Dependencies to add:
+- Spring Web
+- Spring Validation
+
+👉 Click **Generate**, unzip the project.
+
+---
+
+## 1.2 Alternative: Spring Initializr via CLI
+
 If you prefer the command line:
 
+```bash
 curl https://start.spring.io/starter.zip \
   -d project=gradle \
   -d language=java \
@@ -306,22 +517,36 @@ curl https://start.spring.io/starter.zip \
   -d name=mcp-agent \
   -d dependencies=web,validation \
   -o mcp-agent.zip
+```
+
+```bash
 unzip agent.zip
 cd agent
-1.3 Verify the Generated Project
+```
+
+---
+
+## 1.3 Verify the Generated Project
+
 Run:
 
+```bash
 ./gradlew clean test
 ./gradlew bootRun
+```
+
 Open your browser:
 
 👉 http://localhost:8080
 
-You should see a 404 page (expected, no controller yet).
+You should see a **404 page** (expected, no controller yet).
 
 ✅ Spring Boot is running correctly.
 
-Target Recommended Package Layout
+---
+
+# Target Recommended Package Layout
+```text
 com.example.agent
 ├── Application.java
 ├── config/
@@ -359,16 +584,24 @@ com.example.agent
 │   └── IssueDraft.java                 (title / body / metadata)
 └── util/                               (optional)
     └── JsonUtils.java
-🔹 STEP 1.4 — Setup CI/CD (Build & Test)
-🚨 CI is mandatory immediately after STEP 1
+```
 
-Issue
+---
 
+# 🔹 STEP 1.4 — Setup CI/CD (Build & Test)
+
+> 🚨 **CI is mandatory immediately after STEP 1**
+
+**Issue**
+```
 [STEP 1.5] Setup CI to build and test the project
+```
+
 Create file:
 
-.github/workflows/ci.yml
+`.github/workflows/ci.yml`
 
+```yaml
 name: CI
 
 on:
@@ -395,36 +628,55 @@ jobs:
 
       - name: Build & Test
         run: ./gradlew --no-daemon clean test
+```
+
 Validation:
+- GitHub Actions → **green build**
+- No secrets required at this stage
 
-GitHub Actions → green build
-No secrets required at this stage
-(Optional) Add CI badge to README.md.
+(Optional) Add CI badge to `README.md`.
 
-🔹 STEP 1.5 — Add a Simple “User” Vertical Slice (Domain + Service + Web)
-🎯 Objective
-Before adding AI/MCP complexity, implement a minimal, clean vertical slice to validate:
+---
 
-package structure (domain, service, web)
-Spring dependency injection
-REST endpoint behavior
-basic testing approach
+# 🔹 STEP 1.5 — Add a Simple “User” Vertical Slice (Domain + Service + Web)
+
+### 🎯 Objective
+Before adding AI/MCP complexity, implement a minimal, clean **vertical slice** to validate:
+
+- package structure (`domain`, `service`, `web`)
+- Spring dependency injection
+- REST endpoint behavior
+- basic testing approach
+
 This step produces a working example:
 
+```text
 UserController (web)
   ↓
 UserService (service)
   ↓
 User (domain)
-1.5.1 Create the Domain Model
-Create file: src/main/java/com/example/agent/domain/User.java
+```
 
+---
+
+## 1.5.1 Create the Domain Model
+
+Create file: `src/main/java/com/example/agent/domain/User.java`
+
+```java
 package com.example.agent.domain;
 
 public record User(String id, String name, String email) { }
-1.5.2 Create the Service
-Create file: src/main/java/com/example/agent/service/UserService.java
+```
 
+---
+
+## 1.5.2 Create the Service
+
+Create file: `src/main/java/com/example/agent/service/UserService.java`
+
+```java
 package com.example.agent.service;
 
 import com.example.agent.domain.User;
@@ -454,9 +706,15 @@ public class UserService {
         return user;
     }
 }
-1.5.3 Create the Web Controller
-Create file: src/main/java/com/example/agent/web/UserController.java
+```
 
+---
+
+## 1.5.3 Create the Web Controller
+
+Create file: `src/main/java/com/example/agent/web/UserController.java`
+
+```java
 package com.example.agent.web;
 
 import com.example.agent.domain.User;
@@ -484,40 +742,67 @@ public class UserController {
         return users.getById(id);
     }
 }
-1.5.4 Run and Test Manually
+```
+
+---
+
+## 1.5.4 Run and Test Manually
+
 Run:
-
+```bash
 ./gradlew bootRun
+```
+
 Create a user:
-
+```bash
 curl -s -X POST "http://localhost:8080/api/users?name=Alice&email=alice@example.com"
+```
+
 Expected response (example):
-
+```json
 {"id":"...","name":"Alice","email":"alice@example.com"}
-Copy the returned id, then fetch it:
+```
 
+Copy the returned `id`, then fetch it:
+```bash
 curl -s "http://localhost:8080/api/users/<ID>"
-1.5.5 Integration Test — UserControllerIT
-🎯 Objective
-Add an integration test that starts the Spring Boot application context and tests the real HTTP endpoints:
+```
 
-POST /api/users
-GET /api/users/{id}
+---
+
+## 1.5.5 Integration Test — `UserControllerIT`
+
+### 🎯 Objective
+Add an **integration test** that starts the Spring Boot application context and tests the real HTTP endpoints:
+
+- `POST /api/users`
+- `GET /api/users/{id}`
+
 This validates:
+- Spring wiring (**Controller → Service → Domain**)
+- JSON serialization/deserialization
+- HTTP routing and status codes
 
-Spring wiring (Controller → Service → Domain)
-JSON serialization/deserialization
-HTTP routing and status codes
-1.5.5.1 Prerequisites
-This test uses WebTestClient, which is already required later for MCP.
+---
 
-Ensure the following dependencies are present in build.gradle:
+### 1.5.5.1 Prerequisites
 
+This test uses `WebTestClient`, which is already required later for MCP.
+
+Ensure the following dependencies are present in `build.gradle`:
+
+```gradle
 implementation "org.springframework:spring-webflux"
 testImplementation "org.springframework.boot:spring-boot-starter-test"
-1.5.5.2 Create the Integration Test
-Create file: src/test/java/com/example/agent/web/UserControllerIT.java
+```
 
+---
+
+### 1.5.5.2 Create the Integration Test
+
+Create file: `src/test/java/com/example/agent/web/UserControllerIT.java`
+
+```java
 package com.example.agent.web;
 
 import com.example.agent.domain.User;
@@ -569,27 +854,44 @@ class UserControllerIT {
         assertThat(fetched.email()).isEqualTo("alice@example.com");
     }
 }
-1.5.5.3 Run the Tests
+```
+
+---
+
+### 1.5.5.3 Run the Tests
+
 Execute:
 
+```bash
 ./gradlew test
-✅ Expected Result
-The Spring context starts successfully
-The controller endpoints respond correctly
-The test passes locally and in CI
-✅ Step Validation Checklist
- User domain record exists in domain/
- UserService exists in service/
- UserController exists in web/
- POST /api/users returns a JSON user
- GET /api/users/{id} returns the same user
- UserControllerIT passes
- ./gradlew test is green
-This step validates the architecture conventions used for the rest of the lab (agent, tools, MCP).
+```
 
-🔹 STEP 2 — Dependencies : use the LangChain4j BOM (keeps versions aligned)
-Edit build.gradle:
+### ✅ Expected Result
+- The Spring context starts successfully
+- The controller endpoints respond correctly
+- The test passes locally and in CI
 
+---
+
+## ✅ Step Validation Checklist
+
+- [ ] `User` domain record exists in `domain/`
+- [ ] `UserService` exists in `service/`
+- [ ] `UserController` exists in `web/`
+- [ ] `POST /api/users` returns a JSON user
+- [ ] `GET /api/users/{id}` returns the same user
+- [ ] `UserControllerIT` passes
+- [ ] `./gradlew test` is green
+
+> This step validates the architecture conventions used for the rest of the lab (agent, tools, MCP).
+
+---
+
+# 🔹 STEP 2 — Dependencies : use the LangChain4j BOM (keeps versions aligned)
+
+Edit `build.gradle`:
+
+```gradle
 dependencies {
   // Spring
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -613,9 +915,15 @@ dependencies {
 }
 
 test { useJUnitPlatform() }
-🔹 STEP 3 — Configuration
-src/main/resources/application.yml
+```
 
+---
+
+# 🔹 STEP 3 — Configuration
+
+`src/main/resources/application.yml`
+
+```yaml
 github:
   owner: ${GITHUB_OWNER}
   repo: ${GITHUB_REPO}
@@ -633,10 +941,17 @@ openai:
 mcp:
   base-url: http://localhost:3333
   path: /mcp
-🔹 STEP 4 — Connect to Claude (LangChain4j 1.10.0)
-4.1 Agent Interface
-src/main/java/com/example/agent/BacklogAgent.java
+```
 
+---
+
+# 🔹 STEP 4 — Connect to Claude (LangChain4j 1.10.0)
+
+## 4.1 Agent Interface
+
+`src/main/java/com/example/agent/BacklogAgent.java`
+
+```java
 package com.example.agent.agent;
 
 import dev.langchain4j.service.SystemMessage;
@@ -662,9 +977,13 @@ public interface BacklogAgent {
   @UserMessage("User request: {{prompt}}")
   String handle(@V("prompt") String prompt);
 }
-4.2 Spring Configuration: Claude model + Agent builder
-src/main/java/com/example/agent/config/LangChainConfig.java
+```
 
+## 4.2 Spring Configuration: Claude model + Agent builder
+
+`src/main/java/com/example/agent/config/LangChainConfig.java`
+
+```java
 package net.filecode.agent.config;
 
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
@@ -722,9 +1041,15 @@ public class LangChainConfig {
             .build();
   }
 }
-🔹 STEP 5 — MCP HTTP Client (JSON-RPC over HTTP)
-src/main/java/com/example/agent/mcp/McpHttpClient.java
+```
 
+---
+
+# 🔹 STEP 5 — MCP HTTP Client (JSON-RPC over HTTP)
+
+`src/main/java/com/example/agent/mcp/McpHttpClient.java`
+
+```java
 package com.example.agent.mcp;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -805,15 +1130,24 @@ public class McpHttpClient {
             });
   }
 }
-🔹 STEP 6 — MCP → LangChain4j Tool Bridge (@Tool)
-src/main/java/com/example/agent/tools/AgentTool.java
+```
 
+---
+
+# 🔹 STEP 6 — MCP → LangChain4j Tool Bridge (@Tool)
+
+`src/main/java/com/example/agent/tools/AgentTool.java`
+
+```java
 package com.example.agent.tools;
 
 public interface AgentTool {
 }
-src/main/java/com/example/agent/tools/GitHubMcpTools.java
+```
 
+`src/main/java/com/example/agent/tools/GitHubMcpTools.java`
+
+```java
 package com.example.agent.tools;
 
 import dev.langchain4j.agent.tool.P;
@@ -856,9 +1190,15 @@ public class GitHubMcpTools implements AgentTool {
     return "Issue created successfully: " + result;
   }
 }
-🔹 STEP 7 — REST API to Trigger the Agent
-src/main/java/com/example/agent/service/AgentService.java
 
+```
+
+---
+
+# 🔹 STEP 7 — REST API to Trigger the Agent
+
+`src/main/java/com/example/agent/service/AgentService.java`
+```java
 package com.example.agent.service;
 
 import net.filecode.agent.BacklogAgent;
@@ -876,8 +1216,11 @@ public class AgentService {
         return backlogAgent.handle(prompt);
     }
 }
-src/main/java/com/example/agent/web/AgentController.java
+```
 
+`src/main/java/com/example/agent/web/AgentController.java`
+
+```java
 package com.example.agent.web;
 
 import net.filecode.agent.BacklogAgent;
@@ -902,15 +1245,25 @@ public class AgentController {
     return agentService.run(prompt);
   }
 }
+```
+
 Test:
 
+```bash
 curl -s http://localhost:8080/api/agent/run \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Create a task to add OpenTelemetry and export traces via OTLP."}'
-🔹 STEP 8 — Unit Tests
-8.1 Unit test the MCP bridge tool (no real MCP)
-src/test/java/com/example/agent/tools/GitHubMcpToolsTest.java
+```
 
+---
+
+# 🔹 STEP 8 — Unit Tests
+
+## 8.1 Unit test the MCP bridge tool (no real MCP)
+
+`src/test/java/com/example/agent/tools/GitHubMcpToolsTest.java`
+
+```java
 package com.example.agent.tools;
 
 import com.example.mcp.McpHttpClient;
@@ -939,12 +1292,21 @@ class GitHubMcpToolsTest {
     verify(mcp, times(1)).callTool(eq("create_issue"), anyMap());
   }
 }
+```
+
 Run:
 
+```bash
 ./gradlew test
-🔹 STEP 9 — Integration Test (Spring context + endpoint)
-src/test/java/com/example/agent/web/AgentControllerIT.java
+```
 
+---
+
+# 🔹 STEP 9 — Integration Test (Spring context + endpoint)
+
+`src/test/java/com/example/agent/web/AgentControllerIT.java`
+
+```java
 package com.example.agent.web;
 
 import com.example.mcp.McpHttpClient;
@@ -981,12 +1343,18 @@ class AgentControllerIT {
         .expectStatus().isOk();
   }
 }
-This integration test does not call Anthropic.
-For a true E2E test, run manually with ANTHROPIC_API_KEY and a real MCP server.
+```
 
-🔹 STEP 10 — Dockerization
-Dockerfile
+> This integration test does not call Anthropic.  
+> For a true E2E test, run manually with `ANTHROPIC_API_KEY` and a real MCP server.
 
+---
+
+# 🔹 STEP 10 — Dockerization
+
+`Dockerfile`
+
+```dockerfile
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
@@ -997,17 +1365,25 @@ WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]
+```
+
 Run:
 
+```bash
 docker build -t ai-agent .
 docker run -p 8080:8080 \
   -e ANTHROPIC_API_KEY \
   -e GITHUB_TOKEN \
   ai-agent
-🔹 STEP 11 — CI/CD (GitHub Actions)
-11.1 CI
-.github/workflows/ci.yml
+```
 
+# 🔹 STEP 11 — CI/CD (GitHub Actions)
+
+## 11.1 CI
+
+`.github/workflows/ci.yml`
+
+```yaml
 name: CI
 
 on:
@@ -1036,9 +1412,13 @@ jobs:
 
       - name: Docker Build (no push)
         run: docker build -t local/agent:ci .
-11.2 CD (GHCR)
-.github/workflows/docker-publish.yml
+```
 
+## 11.2 CD (GHCR)
+
+`.github/workflows/docker-publish.yml`
+
+```yaml
 name: Docker Publish (GHCR)
 
 on:
@@ -1084,69 +1464,117 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-🏁 Conclusion
+```
+
+---
+
+
+# 🏁 Conclusion
+
 At the end of this lab, you have:
 
-Spring Initializr project runs
-LangChain4j BOM compiles
-Claude model bean builds
-MCP client can list/call tools
-Tool wrapper calls MCP
-Agent endpoint runs
-Unit tests pass
-Docker image runs
-CI/CD is green
-🔹 STEP 12 — Deploy on Minikube (Local Kubernetes)
-🎯 Goal: deploy both containers on a local Kubernetes cluster (Minikube) to validate Docker images in a near-production setup.
+1. Spring Initializr project runs
+2. LangChain4j BOM compiles
+3. Claude model bean builds
+4. MCP client can list/call tools
+5. Tool wrapper calls MCP
+6. Agent endpoint runs
+7. Unit tests pass
+8. Docker image runs
+9. CI/CD is green
+
+---
+
+# 🔹 STEP 12 — Deploy on Minikube (Local Kubernetes)
+
+> 🎯 Goal: deploy both containers on a local Kubernetes cluster (Minikube) to validate Docker images in a near-production setup.
 
 This step deploys:
+- `ai-agent` (your Spring Boot app)
+- `github-mcp-server` (official GitHub MCP Server)
 
-ai-agent (your Spring Boot app)
-github-mcp-server (official GitHub MCP Server)
-Inside Kubernetes:
+**Inside Kubernetes:**
+- `ai-agent` calls the MCP server through a **ClusterIP service** (`http://github-mcp-server:3333/mcp`)
+- Claude (Anthropic) is called externally over HTTPS from the cluster
 
-ai-agent calls the MCP server through a ClusterIP service (http://github-mcp-server:3333/mcp)
-Claude (Anthropic) is called externally over HTTPS from the cluster
-12.1 Prerequisites
-minikube installed
-kubectl installed
-Docker installed
+---
+
+## 12.1 Prerequisites
+
+- `minikube` installed
+- `kubectl` installed
+- Docker installed
+
 Start Minikube:
 
+```bash
 minikube start --driver=docker
 --minikube start --cpus=4 --memory=8192
+```
+
 Create a namespace:
 
+```bash
 kubectl create ns lab-agent
-12.2 Build and Load Images into Minikube
-Option A (recommended): build directly in Minikube Docker
+```
+
+---
+
+## 12.2 Build and Load Images into Minikube
+
+### Option A (recommended): build directly in Minikube Docker
+
+```bash
 eval $(minikube -p minikube docker-env)
+```
+
 Build your agent image (from the student repo):
 
+```bash
 docker build -t ai-agent:dev .
+```
+
 Build the GitHub MCP Server image (from its repo):
 
+```bash
 git clone https://github.com/github/github-mcp-server.git
 cd github-mcp-server
 docker build -t github-mcp-server:dev .
 cd ..
-If the GitHub MCP Server project uses a different build command than docker build, follow its README. The key requirement is to produce an image named github-mcp-server:dev.
+```
 
-Option B: build locally and load images
+> If the GitHub MCP Server project uses a different build command than `docker build`, follow its README.
+> The key requirement is to produce an image named `github-mcp-server:dev`.
+
+### Option B: build locally and load images
+
+```bash
 docker build -t ai-agent:dev .
 minikube image load ai-agent:dev
 minikube image load github-mcp-server:dev
-12.3 Create Secrets (Anthropic + GitHub)
+```
+
+---
+
+## 12.3 Create Secrets (Anthropic + GitHub)
+
 Create a single secret containing both API keys:
 
+```bash
 kubectl -n lab-agent create secret generic agent-secrets \
   --from-literal=ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
   --from-literal=GITHUB_TOKEN="$GITHUB_TOKEN"
+```
+
 ✅ This keeps secrets out of your images and out of Git.
 
-12.4 Deploy GitHub MCP Server (Deployment + Service)
-Create k8s/github-mcp.yaml:
+---
 
+## 12.4 Deploy GitHub MCP Server (Deployment + Service)
+
+Create `k8s/github-mcp.yaml`:
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1187,18 +1615,31 @@ spec:
     - name: http
       port: 3333
       targetPort: 3333
+```
+
 Apply:
 
+```bash
 kubectl apply -f k8s/github-mcp.yaml
-12.5 Deploy AI Agent (Deployment + Service)
-Ensure Spring reads MCP endpoint from env vars
+```
+
+---
+
+## 12.5 Deploy AI Agent (Deployment + Service)
+
+### Ensure Spring reads MCP endpoint from env vars
+
 In your Spring config, confirm you support env vars:
 
+```yaml
 mcp:
   base-url: ${MCP_BASE_URL:http://localhost:3333}
   path: ${MCP_PATH:/mcp}
-Create k8s/ai-agent.yaml:
+```
 
+Create `k8s/ai-agent.yaml`:
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1243,65 +1684,110 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
+```
+
 Apply:
 
+```bash
 kubectl apply -f k8s/ai-agent.yaml
-12.6 Validate Pods & Services
+```
+
+---
+
+## 12.6 Validate Pods & Services
+
+```bash
 kubectl -n lab-agent get pods
 kubectl -n lab-agent get svc
+```
+
 Logs:
 
+```bash
 kubectl -n lab-agent logs deploy/github-mcp-server -f
 kubectl -n lab-agent logs deploy/ai-agent -f
-12.7 Local Access (Port Forward)
+```
+
+---
+
+## 12.7 Local Access (Port Forward)
+
 Expose the agent locally:
 
+```bash
 kubectl -n lab-agent port-forward svc/ai-agent 8080:8080
+```
+
 Test:
 
+```bash
 curl http://localhost:8080/api/agent/run \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Create a GitHub task to add OpenTelemetry with OTLP exporter."}'
+```
+
 ✅ Expected:
+- `ai-agent` calls Claude
+- `ai-agent` calls MCP server via Kubernetes service
+- MCP server creates a GitHub issue
 
-ai-agent calls Claude
-ai-agent calls MCP server via Kubernetes service
-MCP server creates a GitHub issue
-12.8 Troubleshooting
-Connection refused: MCP service not running → check kubectl get pods, logs.
-403 Forbidden: token permissions insufficient → check fine-grained PAT (Issues RW).
-No tool calls: strengthen system prompt (“MUST use tools”).
-Wrong MCP path: verify GitHub MCP server endpoint and update mcp.path.
-🔹 STEP 13 — Kubernetes Smoke Test on Minikube (CI)
-🎯 Objective
-Add a Kubernetes smoke test running in GitHub Actions:
+---
 
-Start a Minikube cluster
-Build the Docker image inside Minikube
-Deploy the application with Kubernetes manifests
-Verify the service is reachable via /actuator/health
-Print pod logs on failure
-✅ This step validates Docker + Kubernetes integration
-❌ External calls (Anthropic / OpenAI / GitHub MCP) are disabled in CI
+## 12.8 Troubleshooting
 
-13.1 Enable Actuator (Health Endpoint)
-Add dependency in build.gradle:
+- **Connection refused**: MCP service not running → check `kubectl get pods`, logs.
+- **403 Forbidden**: token permissions insufficient → check fine-grained PAT (Issues RW).
+- **No tool calls**: strengthen system prompt (“MUST use tools”).
+- **Wrong MCP path**: verify GitHub MCP server endpoint and update `mcp.path`.
 
+---
+
+# 🔹 STEP 13 — Kubernetes Smoke Test on Minikube (CI)
+
+### 🎯 Objective
+Add a **Kubernetes smoke test** running in GitHub Actions:
+
+- Start a Minikube cluster
+- Build the Docker image inside Minikube
+- Deploy the application with Kubernetes manifests
+- Verify the service is reachable via `/actuator/health`
+- Print pod logs on failure
+
+> ✅ This step validates Docker + Kubernetes integration  
+> ❌ External calls (Anthropic / OpenAI / GitHub MCP) are disabled in CI
+
+---
+
+## 13.1 Enable Actuator (Health Endpoint)
+
+Add dependency in `build.gradle`:
+
+```gradle
 implementation "org.springframework.boot:spring-boot-starter-actuator"
-Expose health endpoint in application.yml:
+```
 
+Expose health endpoint in `application.yml`:
+
+```yaml
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-13.2 Add a CI Spring Profile (LLM Stub)
-To avoid external API calls in CI, we use a stub ChatModel.
+```
 
-13.2.1 CI ChatModel Stub
-Create file:
-src/main/java/net/filecode/agent/config/CiChatModelConfig.java
+---
 
+## 13.2 Add a CI Spring Profile (LLM Stub)
+
+To avoid external API calls in CI, we use a **stub ChatModel**.
+
+### 13.2.1 CI ChatModel Stub
+
+Create file:  
+`src/main/java/net/filecode/agent/config/CiChatModelConfig.java`
+
+```java
 package net.filecode.agent.config;
 
 import dev.langchain4j.model.chat.ChatModel;
@@ -1323,9 +1809,15 @@ public class CiChatModelConfig {
                 .build();
     }
 }
-13.2.2 Disable Real LLM Beans in CI
-In LangChainConfig, mark real LLM beans as non‑CI:
+```
 
+---
+
+### 13.2.2 Disable Real LLM Beans in CI
+
+In `LangChainConfig`, mark real LLM beans as non‑CI:
+
+```java
 @Bean
 @Profile("!ci")
 public AnthropicChatModel anthropicChatModel(...) { ... }
@@ -1333,15 +1825,24 @@ public AnthropicChatModel anthropicChatModel(...) { ... }
 @Bean
 @Profile("!ci")
 public OpenAiChatModel openAiChatModel(...) { ... }
-Ensure BacklogAgent depends on ChatModel (not provider-specific).
+```
 
-13.3 Kubernetes Manifests
+Ensure `BacklogAgent` depends on `ChatModel` (not provider-specific).
+
+---
+
+## 13.3 Kubernetes Manifests
+
 Create directory:
 
+```bash
 mkdir -p src/main/k8s
-Create file:
-src/main/k8s/ai-agent-deployment.yml
+```
 
+Create file:  
+`src/main/k8s/ai-agent-deployment.yml`
+
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1389,9 +1890,15 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
-13.4 GitHub Actions — Minikube Job
-Add this job to your CI workflow (e.g. .github/workflows/ci.yml):
+```
 
+---
+
+## 13.4 GitHub Actions — Minikube Job
+
+Add this job to your CI workflow (e.g. `.github/workflows/ci.yml`):
+
+```yaml
 kubernetes:
   runs-on: ubuntu-latest
   needs: build-test-docker
@@ -1437,10 +1944,18 @@ kubernetes:
       run: |
         kubectl get pods -o wide
         kubectl logs -l app=ai-agent --tail=200
-✅ Step Validation Checklist
- Actuator health endpoint enabled
- CI profile runs without external API keys
- Application deploys in Minikube
- /actuator/health reachable in CI
- Kubernetes job is green
-🎉 End of Lab
+```
+
+---
+
+## ✅ Step Validation Checklist
+
+- [ ] Actuator health endpoint enabled
+- [ ] CI profile runs without external API keys
+- [ ] Application deploys in Minikube
+- [ ] `/actuator/health` reachable in CI
+- [ ] Kubernetes job is green
+
+---
+
+🎉 **End of Lab**
