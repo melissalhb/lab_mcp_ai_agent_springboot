@@ -21,10 +21,11 @@ public class LangChainConfig {
                 .build();
     }
 
-    @Bean
-    public BacklogAgent backlogAgent(AnthropicChatModel model) {
+   @Bean
+    public BacklogAgent backlogAgent(AnthropicChatModel model, McpClient mcpClient) {
         return AiServices.builder(BacklogAgent.class)
                 .chatModel(model)
+                .tools(mcpClient) 
                 .build();
     }
 }
