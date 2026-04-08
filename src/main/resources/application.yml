@@ -1,0 +1,8 @@
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY}
+  model: claude-3-5-sonnet-20240620
+  timeout-seconds: 60
+
+mcp:
+  base-url: http://localhost:3333
+  path: /mcp
