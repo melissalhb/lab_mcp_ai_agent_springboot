@@ -14,20 +14,31 @@ spec:
     spec:
       containers:
         - name: ai-agent
-          # On utilise l'image que GitHub vient de créer pour toi
           image: ghcr.io/melissalhb/lab_mcp_ai_agent_springboot:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          env:
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ai-agent-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: GITHUB_OWNER
+              value: "melissalhb" 
+            - name: GITHUB_REPO
+              value: "lab_mcp_ai_agent_springboot"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ai-agent
+  name: ai-agent-service
 spec:
+  type: NodePort 
   selector:
     app: ai-agent
   ports:
-    - name: http
+    - protocol: TCP
       port: 8080
       targetPort: 8080
+      nodePort: 30080

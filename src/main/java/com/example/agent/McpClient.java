@@ -1,27 +1,30 @@
 package com.example.agent;
 
-import dev.langchain4j.agent.tool.Tool;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import java.util.Map;
+import java.util.UUID;
 
-@Service
+@Component
 public class McpClient {
+    private final WebClient webClient;
 
-    private final RestClient restClient;
-
-    public McpClient(@Value("${mcp.base-url}") String baseUrl) {
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+    public McpClient(WebClient.Builder builder) {
+        this.webClient = builder.baseUrl("http://localhost:3001").build(); 
     }
 
-    @Tool("Creates a new GitHub issue with a title and a body")
-    public String createIssue(String title, String body) {
-        return restClient.post()
-                .uri("/tools/create_issue")
-                .body(new McpCreateIssueRequest(title, body))
+    public Mono<Object> callTool(String toolName, Map<String, Object> arguments) {
+        return webClient.post()
+                .uri("/mcp")
+                .bodyValue(Map.of(
+                    "jsonrpc", "2.0",
+                    "id", UUID.randomUUID().toString(),
+                    "method", "tools/call",
+                    "params", Map.of("name", toolName, "arguments", arguments)
+                ))
                 .retrieve()
-                .body(String.class);
+                .bodyToMono(Map.class)
+                .map(resp -> resp.get("result"));
     }
 }
