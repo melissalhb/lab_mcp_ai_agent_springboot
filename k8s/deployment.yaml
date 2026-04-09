@@ -18,10 +18,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-          # --- LES VARIABLES MANQUANTES SONT ICI ---
           env:
             - name: ANTHROPIC_API_KEY
-              value: "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" 
+              valueFrom:
+                secretKeyRef:
+                  name: ai-agent-secrets
+                  key: ANTHROPIC_API_KEY
             - name: GITHUB_OWNER
               value: "melissalhb" 
             - name: GITHUB_REPO
@@ -39,4 +41,4 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-      nodePort: 30080 
+      nodePort: 30080
